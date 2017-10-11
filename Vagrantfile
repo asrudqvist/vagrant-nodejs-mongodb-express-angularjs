@@ -5,11 +5,20 @@ Vagrant.configure("2") do |config|
   config.vm.box = "trusty64"
   config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
 
-  config.vm.network :forwarded_port, guest: 3000, host: 3000
+  #http
+  config.vm.network "forwarded_port", guest: 80, host: 8080
+  config.vm.network "forwarded_port", guest: 8080, host: 8090
+  #node default
+  config.vm.network "forwarded_port", guest: 3000, host: 3000
+  #Mongo
+  config.vm.network "forwarded_port", guest: 27017, host: 27017
+  #Mosquitto
+  config.vm.network "forwarded_port", guest: 1883, host: 1883
+  
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
-  config.vm.network :private_network, ip: "192.168.33.10"
+  #config.vm.network :private_network, ip: "192.168.33.10"
 
   # Create a public network, which generally matched to bridged network.
   # Bridged networks make the machine appear as another physical device on

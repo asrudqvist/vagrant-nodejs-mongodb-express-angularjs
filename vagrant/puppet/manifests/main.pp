@@ -1,6 +1,6 @@
 class apt_update {
     exec { "aptGetUpdate":
-        command => "sudo apt-get update",
+        command => "apt-get update",
         path => ["/bin", "/usr/bin"]
     }
 }
@@ -25,6 +25,34 @@ class othertools {
         ensure => present,
         require => Exec["aptGetUpdate"]
     }
+		
+}
+
+class mosquitto 
+{
+    exec { "adddMosquittoRepo":
+        command => "apt-add-repository ppa:mosquitto-dev/mosquitto-ppa",
+        path => ["/bin", "/usr/bin"]
+    }
+
+	exec { "aptGetUpdate 2":
+        command => "sudo apt-get update",
+        path => ["/bin", "/usr/bin"],
+		require => Exec["adddMosquittoRepo"],
+    }
+	
+	package { "mosquitto":
+        ensure => present,
+		provider => 'apt',
+        require => Exec["aptGetUpdate 2"]
+    }
+
+	package { "mosquitto-clients":
+        ensure => present,
+		provider => 'apt',
+        require => Package["mosquitto"]
+    }
+
 }
 
 class node-js {
@@ -39,17 +67,25 @@ class node-js {
   }
 
   exec { "npm-update" :
-      cwd => "/vagrant",
+      cwd => "/home/vagrant",
       command => "npm -g update",
       onlyif => ["test -d /vagrant/node_modules"],
       path => ["/bin", "/usr/bin"],
       require => Package['nodejs']
   }
+  
+  exec { "npm-express" :
+      cwd => "/home/vagrant",
+      command => "npm -g install express ; npm -g install express-generator",
+	  creates => "/home/vagrant/.express",
+      path => ["/bin", "/usr/bin"],
+      require => Exec['npm-update']
+  }
 }
 
 class mongodb {
   exec { "10genKeys":
-    command => "sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10",
+    command => "apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10",
     path => ["/bin", "/usr/bin"],
     notify => Exec["aptGetUpdate"],
     unless => "apt-key list | grep 10gen"
@@ -72,3 +108,4 @@ include apt_update
 include othertools
 include node-js
 include mongodb
+include mosquitto
